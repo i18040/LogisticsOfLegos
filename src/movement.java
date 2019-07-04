@@ -21,6 +21,7 @@ public class movement {
   }
 
   public static void main(String[] args) {
+    //asdawdawd
     //leftMotor.resetTachoCount();
     //rightMotor.resetTachoCount();
     //leftMotor.rotateTo(0);
@@ -102,8 +103,8 @@ class followLine implements Behavior{
   public void action()
   {
     _suppressed = false;
-    while(!_suppressed)
-    {
+    //while(!_suppressed)
+    //{
       //if(LCSensorRight.getColor() != 7 && LCSensorLeft.getColor() != 7) {
       //main.leftMotor.setSpeed(400);
       //main.rightMotor.setSpeed(400);
@@ -122,7 +123,7 @@ class followLine implements Behavior{
       //}
       //else _suppressed = true;*/
       //Thread.yield();
-    }
+    //}
   }
 }
 /*class turn implements Behavior{

@@ -1,3 +1,3 @@
 public enum turndirection {
-  Right, Left
+  RIGHT, LEFT
 }
