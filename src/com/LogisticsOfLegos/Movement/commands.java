@@ -1,9 +1,12 @@
+package com.LogisticsOfLegos.Movement;
+
 import lejos.hardware.Button;
 import lejos.hardware.lcd.LCD;
 import lejos.hardware.motor.Motor;
 import lejos.hardware.port.SensorPort;
 import lejos.hardware.sensor.EV3ColorSensor;
 import lejos.hardware.sensor.EV3GyroSensor;
+import lejos.hardware.sensor.EV3UltrasonicSensor;
 import lejos.robotics.RegulatedMotor;
 import lejos.robotics.SampleProvider;
 
@@ -14,28 +17,33 @@ public class commands {
   private static final RegulatedMotor rightMotor = Motor.D;
   private static LCSensorLeft leftSensor;
   private static LCSensorRight rightSensor;
+  private static USSensor usSensor;
   private static GSensor gSensor;
   private boolean centered = false;
 
   public commands() {
   }
 
-  public static void main(String[] args) {
+  public void initialize() {
     leftMotor.resetTachoCount();
     rightMotor.resetTachoCount();
     leftMotor.rotateTo(0);
     rightMotor.rotateTo(0);
     leftSensor = new LCSensorLeft();
     rightSensor = new LCSensorRight();
+    usSensor = new USSensor();
     gSensor = new GSensor();
     leftSensor.setDaemon(true);
     rightSensor.setDaemon(true);
+    usSensor.setDaemon(true);
     gSensor.setDaemon(true);
     leftSensor.start();
     rightSensor.start();
+    usSensor.start();
     gSensor.start();
     LCD.drawString("Press any Key.", 0, 0);
     Button.waitForAnyPress();
+    readSensors();
   }
 
   public void followLine() {
@@ -122,6 +130,13 @@ public class commands {
     if (leftSensor.getColor() != 7 && rightSensor.getColor() != 7)
       start(20);
   }
+  private void readSensors(){
+      //LCD.drawString(Integer.toString(leftSensor.getColor()), 0, 2);
+      //LCD.drawString(Integer.toString(rightSensor.getColor()), 0, 4);
+      //LCD.drawString(Integer.toString(gSensor.getAngle()), 0, 4);
+      LCD.drawString(Double.toString(usSensor.getDistance()), 0, 2);
+  }
+
 }
 
 class LCSensorLeft extends Thread {
@@ -189,6 +204,26 @@ class GSensor extends Thread {
       float[] sample = new float[sp.sampleSize()];
       sp.fetchSample(sample, 0);
       angle = (int) sample[0];
+    }
+  }
+}
+
+class USSensor extends Thread {
+  private final EV3UltrasonicSensor uss = new EV3UltrasonicSensor(SensorPort.S3);
+  private final SampleProvider sp = uss.getDistanceMode();
+  private double distance;
+
+  USSensor() {
+
+  }
+  double getDistance(){
+    return distance;
+  }
+  public synchronized void run(){
+    while(true){
+      float[] sample = new float[sp.sampleSize()];
+      uss.fetchSample(sample,0);
+      distance = (double) sample[0];
     }
   }
 }
