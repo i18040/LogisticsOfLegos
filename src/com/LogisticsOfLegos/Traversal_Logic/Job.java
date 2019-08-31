@@ -38,6 +38,10 @@ public class Job{
 		this.reachedPickup = (currentPosition == pickupPosition);
 		generateAllStations(currentPosition);
 	}
+
+    public int checkNextStation() {
+      return stations[visitedStations];
+    }
 	
 	public int getNextStation() {
 		if(stations[visitedStations-1] == pickupPosition)		//if pickup position was just visited, now the robot is on its way to the dumping position
@@ -63,7 +67,7 @@ public class Job{
 			}
 			else
 			{
-					stations[i] = calculateNextStation(stations[i-1], dumpPosition);
+			    stations[i] = calculateNextStation(stations[i-1], dumpPosition);
 			}
 		}
 	}
