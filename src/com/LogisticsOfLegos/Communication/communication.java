@@ -4,6 +4,11 @@ import lejos.hardware.*;
 import lejos.remote.ev3.RemoteEV3;
 import lejos.utility.Delay;
 
+import java.net.MalformedURLException;
+import java.rmi.NotBoundException;
+import java.rmi.Remote;
+import java.rmi.RemoteException;
+
 public class communication {
 
     public static void remoteTestManuell()
@@ -18,7 +23,6 @@ public class communication {
         String[] ip  = {"10.0.0.1", "10.0.0.2"};
         Brick[] bricks = new Brick[names.length];
         try {
-            bricks[0] = BrickFinder.getLocal();
             for(int i = 1; i < bricks.length; i++) //Anzahl der Bricks
             {
                 //System.out.println("Connect " + names[i]);
@@ -54,6 +58,7 @@ public class communication {
 
         try{
             BrickInfo[] brickInfos = BrickFinder.discover();
+            System.out.println(brickInfos);
             for(BrickInfo brickInfo: brickInfos)
             {
                 Brick brick = new RemoteEV3(brickInfo.getIPAddress());
@@ -68,10 +73,28 @@ public class communication {
         }
     }
 
+    public static void mikeRemoteTest(){
+      RemoteEV3 firstRobot= null;
+      try {
+        firstRobot = new RemoteEV3("10.0.1.2");
+      } catch (RemoteException e) {
+        e.printStackTrace();
+      } catch (MalformedURLException e) {
+        e.printStackTrace();
+      } catch (NotBoundException e) {
+        e.printStackTrace();
+      }
+      firstRobot.setDefault();
+      Sound.beep();
+
+    }
+
+
     public static void main(String[] args)
     {
-        remoteTestAuto();       // try finding automatically
-//        remoteTestManuell();    // try finding via IP-Adress
+        //remoteTestAuto();       // try finding automatically
+        //remoteTestManuell();    // try finding via IP-Adress
+        mikeRemoteTest();
     }
 
 }
