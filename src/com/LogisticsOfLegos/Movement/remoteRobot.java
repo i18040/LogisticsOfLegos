@@ -1,5 +1,6 @@
 package com.LogisticsOfLegos.Movement;
 
+import com.LogisticsOfLegos.Traversal_Logic.Navigation;
 import lejos.remote.ev3.RMIRegulatedMotor;
 import lejos.remote.ev3.RemoteEV3;
 
@@ -23,9 +24,11 @@ public class remoteRobot extends Thread{
   private static USSensor usSensor;
   private static GSensor gSensor;
   private boolean centered = false;
+  private boolean isFirstRobot;
 
-  public remoteRobot(String ip) {
+  public remoteRobot(String ip, boolean isFirstRobot) {
     this.IP = ip;
+    this.isFirstRobot = isFirstRobot;
   }
 
   public synchronized void initialize() throws RemoteException, MalformedURLException, NotBoundException {
@@ -102,36 +105,7 @@ public class remoteRobot extends Thread{
     usSensor.start();
     gSensor.start();
 
-    //LCD.drawString("Press any Key.", 0, 0);
-    //Button.waitForAnyPress();
-    //readSensors();
-    /*
-    leftMotor.setSpeed(400);
-    rightMotor.setSpeed(400);
-    this.leftMotor.forward();
-    this.rightMotor.forward();
-    try {
-      Thread.sleep(2000);
-    } catch (InterruptedException e) {
-      e.printStackTrace();
-    }
-    this.leftMotor.setSpeed(800);
-    this.rightMotor.setSpeed(800);
-    try {
-      Thread.sleep(2000);
-    } catch (InterruptedException e) {
-      e.printStackTrace();
-    }
-    System.out.println("leftmotor after forward: "+this.leftMotor);
-    System.out.println("rightmotor after forward: "+this.rightMotor);
-    System.out.println("robot after forward: "+this.thisRobot);
-    this.leftMotor.stop(false);
-    this.rightMotor.stop(false);
-    this.leftMotor.rotate(180);
-    this.rightMotor.rotate(180);
-    this.rightMotor.close();
-    this.leftMotor.close();
-    */
+
     while(leftSensor.getColor() == 0 || rightSensor.getColor() == 0)
     {
       try {
@@ -147,23 +121,31 @@ public class remoteRobot extends Thread{
       leftSensor.suspended = false;
       rightSensor.suspended = false;
     while(leftSensor.getColor() != 7 || rightSensor.getColor() != 7) {
+      if(usSensor.getDistance() <=0.3) {
+        if (!leftSensor.suspended && !rightSensor.suspended){
+          leftSensor.suspended = true;
+          rightSensor.suspended = true;
+        }
+      }
+      else{
+        if(leftSensor.suspended || rightSensor.suspended) {
+          leftSensor.suspended = false;
+          rightSensor.suspended = false;
+        }
+      }
       try {
         Thread.sleep(200);
       } catch (InterruptedException e) {
         e.printStackTrace();
       }
-    /*if(usSensor.getDistance() <=0.3){
-      leftSensor.suspended = true;
-      rightSensor.suspended = true;
-    }*/
     }
     if(leftSensor.getColor() == 7 && rightSensor.getColor() == 7){
       leftSensor.suspended = true;
       rightSensor.suspended = true;
       System.out.println("finished");
       finishedAction = true;
-      //todo hier tobi schnittstelle
     }
+    Navigation.changeStatusToIdle(isFirstRobot);
   }
 
   public void turn(turndirection direction) throws RemoteException{
@@ -177,6 +159,7 @@ public class remoteRobot extends Thread{
           e.printStackTrace();
         }
       }
+      Navigation.changeStatusToIdle(isFirstRobot);
     }
     if(direction == turndirection.RIGHT){
       leftSensor.turnright = true;
@@ -188,6 +171,7 @@ public class remoteRobot extends Thread{
           e.printStackTrace();
         }
       }
+      Navigation.changeStatusToIdle(isFirstRobot);
     }
     if(direction == turndirection.NONE){
       leftSensor.skip = true;
@@ -200,6 +184,7 @@ public class remoteRobot extends Thread{
         }
       }
     }
+    Navigation.changeStatusToIdle(isFirstRobot);
   }
   public void park(){
     leftSensor.park = true;
@@ -211,6 +196,7 @@ public class remoteRobot extends Thread{
         e.printStackTrace();
       }
     }
+    Navigation.changeStatusToIdle(isFirstRobot);
   }
 
   public void go() {
@@ -223,6 +209,7 @@ public class remoteRobot extends Thread{
         e.printStackTrace();
       }
     }
+    Navigation.changeStatusToIdle(isFirstRobot);
   }
 
   public void turnaround(){
@@ -235,6 +222,7 @@ public class remoteRobot extends Thread{
         e.printStackTrace();
       }
     }
+    Navigation.changeStatusToIdle(isFirstRobot);
   }
   public synchronized void run(){
     try {

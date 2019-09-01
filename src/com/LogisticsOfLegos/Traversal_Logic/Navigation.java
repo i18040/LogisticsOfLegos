@@ -1,6 +1,9 @@
 package com.LogisticsOfLegos.Traversal_Logic;
 
 import com.LogisticsOfLegos.Movement.remoteRobot;
+import com.LogisticsOfLegos.Movement.turndirection;
+
+import java.rmi.RemoteException;
 
 public class Navigation {			//expect from GUI to have checked that pickup & dump locations are different!
 
@@ -29,10 +32,10 @@ public class Navigation {			//expect from GUI to have checked that pickup & dump
 		}
 	}
 	
-	public  Robot firstRobot = null;
-	public  Robot secondRobot = null;
+	public static Robot firstRobot = null;
+	public static Robot secondRobot = null;
 	
-	public void changeStatusToIdle(boolean isFirstRobot) {	//created for Mike to Change Status to idle
+	public static void changeStatusToIdle(boolean isFirstRobot) {	//created for Mike to Change Status to idle
 		if(isFirstRobot)
 		{
 			firstRobot.status = Status.IDLE;
@@ -75,11 +78,19 @@ public class Navigation {			//expect from GUI to have checked that pickup & dump
 		if(firstRobot.job.jobStatus != JobStatus.NONEASSIGNED && firstRobot.job.reachedPickup
 				&& firstRobot.position == firstRobot.job.dumpPosition && firstRobot.status == Status.IDLE)
 		{
+			if(firstRobot.job.jobId == 0)
+			{
+				firstRobot.physicalBot.park();
+			}
 			firstRobot.clearJob();  //Job done. Not important for GUI, because after accepting they are already moved to done
 		}
 		else if(secondRobot.job.jobStatus != JobStatus.NONEASSIGNED && secondRobot.job.reachedPickup
 				&& secondRobot.position == secondRobot.job.dumpPosition && secondRobot.status == Status.IDLE)
 		{
+			if(secondRobot.job.jobId == 0)
+			{
+				secondRobot.physicalBot.park();
+			}
 			secondRobot.clearJob();	//Job done. Not important for GUI, because after accepting they are already moved to done
 		}
 	}
@@ -138,15 +149,49 @@ public class Navigation {			//expect from GUI to have checked that pickup & dump
 			currentRobot = secondRobot;
 		}
 		int requiredCardinalDirection = getRequiredCardinalDirection(currentRobot.position, goal);
-		while(currentRobot.cardinalDirection != requiredCardinalDirection)
+		if(currentRobot.cardinalDirection == requiredCardinalDirection)
 		{
-			//rotate by 90� to the right
+			try {
+				currentRobot.physicalBot.turn(turndirection.NONE);
+			} catch (RemoteException e) {
+				e.printStackTrace();
+			}
+		}
+		else if(((currentRobot.cardinalDirection+1)%4) == requiredCardinalDirection)
+		{
+			try {
+				currentRobot.physicalBot.turn(turndirection.RIGHT);
+			} catch (RemoteException e) {
+				e.printStackTrace();
+			}
 			currentRobot.cardinalDirection = (firstRobot.cardinalDirection+1)%4;
 		}
-		//here MikeDrive(currentRobot.position, goal);
+		else if(((currentRobot.cardinalDirection+2)%4) == requiredCardinalDirection)
+		{
+			currentRobot.physicalBot.turnaround();
+			currentRobot.cardinalDirection = (firstRobot.cardinalDirection+2)%4;
+		}
+		else if(((currentRobot.cardinalDirection+3)%4) == requiredCardinalDirection)
+		{
+			try {
+				currentRobot.physicalBot.turn(turndirection.LEFT);
+			} catch (RemoteException e) {
+				e.printStackTrace();
+			}
+			currentRobot.cardinalDirection = (firstRobot.cardinalDirection+3)%4;
+		}
+
+		try {
+			currentRobot.physicalBot.followLine();
+		} catch (RemoteException e) {
+			e.printStackTrace();
+		}
 		currentRobot.status = Status.WORKINGONJOB;
 		currentRobot.job.jobStatus = currentRobot.job.reachedPickup ? JobStatus.MOVINGTODUMP : JobStatus.MOVINGTOPICKUP;
-		if(currentRobot.job.jobId == 0) { currentRobot.job.jobStatus = JobStatus.MOVINGTOPARKING; }
+		if(currentRobot.job.jobId == 0)
+		{ 
+			currentRobot.job.jobStatus = JobStatus.MOVINGTOPARKING;
+		}
 		currentRobot.position = goal;
 	}
 	
