@@ -1,6 +1,7 @@
 //Erstellt von Tobias Götz
 package com.LogisticsOfLegos.Traversal_Logic;
 
+import com.LogisticsOfLegos.GUI.logic.Systemelemente;
 import com.LogisticsOfLegos.Movement.remoteRobot;
 import com.LogisticsOfLegos.Movement.turndirection;
 
@@ -10,6 +11,7 @@ import java.util.HashSet;
 import java.util.Set;
 
 public class Navigation {			//expect from GUI to have checked that pickup & dump locations are different!
+
 	private static final Set<Integer> randpositionen = new HashSet<>(Arrays.asList(1,2,3,4,5,6,7,8));
 	public static class Robot{
 
@@ -91,45 +93,30 @@ public class Navigation {			//expect from GUI to have checked that pickup & dump
 		}
 	}
 
-	public int[] getLowestValueInQueue()		//PLACEHOLDER; should be Peter's Method
-	{
-		int[] a = {1,2};
-		return a;
-	}
-	public int[] acceptJob(int jobId)		//PLACEHOLDER; should be Peter's Method
-	{
-		int[] a = {1,2};
-		return a;
-	}
-	public int[] acceptJob(int jobId, int jobId2)		//PLACEHOLDER; should be Peter's Method
-	{
-		int[] a = {1,2};
-		return a;
-	}
 	
 	public void checkJobChanges() {
-		int[] priorityAndJobId = getLowestValueInQueue();
+		int[] priorityAndJobId = Systemelemente.getLowestValueInQueue();
 		int lowestPriority = priorityAndJobId[0];
 		int jobId = priorityAndJobId[1];
 		
 		if(firstRobot.job.jobStatus == JobStatus.NONEASSIGNED || firstRobot.job.jobId == 0)
 		{
-			int[] pickupAndDumpLocation = acceptJob(jobId);
+			int[] pickupAndDumpLocation = Systemelemente.acceptJob(jobId);
 			firstRobot.job.changeJob(lowestPriority, pickupAndDumpLocation[0], pickupAndDumpLocation[1], JobStatus.MOVINGTOPICKUP, firstRobot.position, jobId);
 		}
 		else if(firstRobot.job.jobPriority > lowestPriority && (!firstRobot.job.reachedPickup))
 		{
-			int[] pickupAndDumpLocation = acceptJob(jobId, firstRobot.job.jobId);
+			int[] pickupAndDumpLocation = Systemelemente.acceptJob(jobId, firstRobot.job.jobId);
 			firstRobot.job.changeJob(lowestPriority, pickupAndDumpLocation[0], pickupAndDumpLocation[1], JobStatus.MOVINGTOPICKUP, firstRobot.position, jobId);
 		}
 		if(secondRobot.job.jobStatus == JobStatus.NONEASSIGNED || secondRobot.job.jobId == 0)
 		{
-			int[] pickupAndDumpLocation = acceptJob(jobId);
+			int[] pickupAndDumpLocation = Systemelemente.acceptJob(jobId);
 			secondRobot.job.changeJob(lowestPriority, pickupAndDumpLocation[0], pickupAndDumpLocation[1], JobStatus.MOVINGTOPICKUP, secondRobot.position, jobId);
 		}
 		else if(secondRobot.job.jobPriority > lowestPriority && (!secondRobot.job.reachedPickup))
 		{
-			int[] pickupAndDumpLocation = acceptJob(jobId, secondRobot.job.jobId);
+			int[] pickupAndDumpLocation = Systemelemente.acceptJob(jobId, secondRobot.job.jobId);
 			secondRobot.job.changeJob(lowestPriority, pickupAndDumpLocation[0], pickupAndDumpLocation[1], JobStatus.MOVINGTOPICKUP, secondRobot.position, jobId);
 		}
 	}
