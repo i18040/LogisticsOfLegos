@@ -2,6 +2,8 @@ package com.LogisticsOfLegos;
 
 import com.LogisticsOfLegos.Movement.remoteRobot;
 import com.LogisticsOfLegos.Movement.turndirection;
+import com.LogisticsOfLegos.Traversal_Logic.Navigation;
+import com.LogisticsOfLegos.Traversal_Logic.Status;
 
 import java.net.MalformedURLException;
 import java.rmi.NotBoundException;
@@ -12,6 +14,7 @@ public class Init {
   private static remoteRobot secondRobot = null;
   public static void main(String[] args) throws RemoteException, NotBoundException, MalformedURLException {
 
+    Navigation a = new Navigation();
 
     //Startseite seite = new Startseite();
     //seite.setVisible(true);
@@ -57,8 +60,8 @@ public class Init {
     */
     firstRobot = new remoteRobot("10.0.1.1");
     firstRobot.start();
-    //secondRobot = new remoteRobot("10.0.1.4");
-    //secondRobot.start();
+    secondRobot = new remoteRobot("10.0.1.4");
+    secondRobot.start();
     while(!firstRobot.isInitialized) {
       try {
         Thread.sleep(200);
@@ -66,13 +69,16 @@ public class Init {
         e.printStackTrace();
       }
     }
-    /*while(!secondRobot.isInitialized) {
+    while(!secondRobot.isInitialized) {
       try {
         Thread.sleep(200);
       } catch (InterruptedException e) {
         e.printStackTrace();
       }
-    }*/
+    }
+    a.firstRobot = new Navigation.Robot(7, Status.IDLE, 3, firstRobot);
+    a.secondRobot = new Navigation.Robot (8, Status.IDLE, 1, secondRobot);
+
     //firstRobot.startMove(0);
     //firstRobot.readSensors();
     firstRobot.go();

@@ -1,19 +1,23 @@
 package com.LogisticsOfLegos.Traversal_Logic;
 
+import com.LogisticsOfLegos.Movement.remoteRobot;
+
 public class Navigation {			//expect from GUI to have checked that pickup & dump locations are different!
 
-	private class Robot{
+	public static class Robot{
 
 		public int position;
 		public Status status;
 		public int cardinalDirection;		//Direction robot is facing. 0N, 1E, 2S, 3W
+		public remoteRobot physicalBot = null;
 		public Job job = new Job();
 		
-		public Robot(int position, Status status, int cardinalDirection)
+		public Robot(int position, Status status, int cardinalDirection, remoteRobot physicalBot)
 		{
 			this.position = position;
 			this.status = status;
 			this.cardinalDirection = cardinalDirection;
+			this.physicalBot = physicalBot;
 		}
 		
 		public void clearJob() {
@@ -25,8 +29,8 @@ public class Navigation {			//expect from GUI to have checked that pickup & dump
 		}
 	}
 	
-	public Robot firstRobot = new Robot(7, Status.IDLE, 3);
-	public Robot secondRobot = new Robot(8, Status.IDLE, 1);
+	public  Robot firstRobot = null;
+	public  Robot secondRobot = null;
 	
 	public void changeStatusToIdle(boolean isFirstRobot) {	//created for Mike to Change Status to idle
 		if(isFirstRobot)

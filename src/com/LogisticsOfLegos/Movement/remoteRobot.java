@@ -44,7 +44,6 @@ public class remoteRobot extends Thread{
         }
       }
     }
-    System.out.println("thisrobot: "+this.thisRobot);
     //thisRobot.setDefault();
     this.leftMotor = thisRobot.createRegulatedMotor("A",'L');
     this.rightMotor = thisRobot.createRegulatedMotor("D",'L');
