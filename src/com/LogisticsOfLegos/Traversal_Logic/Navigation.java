@@ -1,12 +1,16 @@
+//Erstellt von Tobias Götz
 package com.LogisticsOfLegos.Traversal_Logic;
 
 import com.LogisticsOfLegos.Movement.remoteRobot;
 import com.LogisticsOfLegos.Movement.turndirection;
 
 import java.rmi.RemoteException;
+import java.util.Arrays;
+import java.util.HashSet;
+import java.util.Set;
 
 public class Navigation {			//expect from GUI to have checked that pickup & dump locations are different!
-
+	private static final Set<Integer> randpositionen = new HashSet<>(Arrays.asList(1,2,3,4,5,6,7,8));
 	public static class Robot{
 
 		public int position;
@@ -76,25 +80,17 @@ public class Navigation {			//expect from GUI to have checked that pickup & dump
 
 	public void checkIfJobDone() {
 		if(firstRobot.job.jobStatus != JobStatus.NONEASSIGNED && firstRobot.job.reachedPickup
-				&& firstRobot.position == firstRobot.job.dumpPosition && firstRobot.status == Status.IDLE)
+						&& firstRobot.position == firstRobot.job.dumpPosition && firstRobot.status == Status.IDLE)
 		{
-			if(firstRobot.job.jobId == 0)
-			{
-				firstRobot.physicalBot.park();
-			}
 			firstRobot.clearJob();  //Job done. Not important for GUI, because after accepting they are already moved to done
 		}
 		else if(secondRobot.job.jobStatus != JobStatus.NONEASSIGNED && secondRobot.job.reachedPickup
-				&& secondRobot.position == secondRobot.job.dumpPosition && secondRobot.status == Status.IDLE)
+						&& secondRobot.position == secondRobot.job.dumpPosition && secondRobot.status == Status.IDLE)
 		{
-			if(secondRobot.job.jobId == 0)
-			{
-				secondRobot.physicalBot.park();
-			}
 			secondRobot.clearJob();	//Job done. Not important for GUI, because after accepting they are already moved to done
 		}
 	}
-	
+
 	public int[] getLowestValueInQueue()		//PLACEHOLDER; should be Peter's Method
 	{
 		int[] a = {1,2};
@@ -164,12 +160,12 @@ public class Navigation {			//expect from GUI to have checked that pickup & dump
 			} catch (RemoteException e) {
 				e.printStackTrace();
 			}
-			currentRobot.cardinalDirection = (firstRobot.cardinalDirection+1)%4;
+			currentRobot.cardinalDirection = (currentRobot.cardinalDirection+1)%4;
 		}
 		else if(((currentRobot.cardinalDirection+2)%4) == requiredCardinalDirection)
 		{
 			currentRobot.physicalBot.turnaround();
-			currentRobot.cardinalDirection = (firstRobot.cardinalDirection+2)%4;
+			currentRobot.cardinalDirection = (currentRobot.cardinalDirection+2)%4;
 		}
 		else if(((currentRobot.cardinalDirection+3)%4) == requiredCardinalDirection)
 		{
@@ -178,11 +174,13 @@ public class Navigation {			//expect from GUI to have checked that pickup & dump
 			} catch (RemoteException e) {
 				e.printStackTrace();
 			}
-			currentRobot.cardinalDirection = (firstRobot.cardinalDirection+3)%4;
+			currentRobot.cardinalDirection = (currentRobot.cardinalDirection+3)%4;
 		}
 
 		try {
-			currentRobot.physicalBot.followLine();
+			boolean startIsRandposition = randpositionen.contains(currentRobot.position);
+			boolean goalIsRandposition = randpositionen.contains(goal);
+			currentRobot.physicalBot.followLine(goalIsRandposition, startIsRandposition);
 		} catch (RemoteException e) {
 			e.printStackTrace();
 		}

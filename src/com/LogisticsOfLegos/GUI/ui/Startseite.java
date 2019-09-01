@@ -1,4 +1,4 @@
-
+//Erstellt von Peter Rauschenberger
 package com.LogisticsOfLegos.GUI.ui;
 
 import com.LogisticsOfLegos.GUI.logic.Systemelemente;

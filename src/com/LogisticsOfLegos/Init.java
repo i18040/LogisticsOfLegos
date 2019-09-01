@@ -1,8 +1,8 @@
+//Erstellt von Mike Sütö
 package com.LogisticsOfLegos;
 
 import com.LogisticsOfLegos.GUI.ui.Startseite;
 import com.LogisticsOfLegos.Movement.remoteRobot;
-import com.LogisticsOfLegos.Movement.turndirection;
 import com.LogisticsOfLegos.Traversal_Logic.Navigation;
 import com.LogisticsOfLegos.Traversal_Logic.Status;
 
@@ -39,20 +39,8 @@ public class Init {
     seite.setVisible(true);
     navi.firstRobot = new Navigation.Robot(7, Status.IDLE, 3, firstRobot);
     navi.secondRobot = new Navigation.Robot (8, Status.IDLE, 1, secondRobot);
-
-    //firstRobot.startMove(0);
-    //firstRobot.readSensors();
-    firstRobot.go();
-    firstRobot.followLine();
-    firstRobot.turn(turndirection.LEFT);
-    firstRobot.followLine();
-    firstRobot.turn(turndirection.NONE);
-    firstRobot.followLine();
-    firstRobot.turn(turndirection.RIGHT);
-    firstRobot.followLine();
-    firstRobot.park();
-    firstRobot.turnaround();
-    firstRobot.closePorts();
+    firstRobot.navi = navi;
+    secondRobot.navi = navi;
   }
   public static void close(){
     if (firstRobot != null) {

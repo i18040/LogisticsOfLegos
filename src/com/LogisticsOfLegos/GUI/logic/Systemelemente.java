@@ -31,14 +31,6 @@ public static void eingabefenster() {
        		index++;
     	}
     Collections.sort(Listen.ausstehend, new SortTable());
-   	//checkChanges();	
-	for(int i = 0; i < Listen.ausstehend.size(); i++) {
-		System.out.print(Listen.ausstehend.get(i).Bezeichnung);
-		System.out.print(Listen.ausstehend.get(i).Abholort);
-		System.out.print(Listen.ausstehend.get(i).Abgabeort);
-		System.out.println(Listen.ausstehend.get(i).Prio);
-		System.out.println(Listen.ausstehend.get(i).Index);
-	}
 	}
 
 public static int[] getLowestValueInQueue() {
