@@ -1,27 +1,21 @@
 package com.LogisticsOfLegos.Movement;
 
-import lejos.hardware.Button;
-import lejos.hardware.lcd.LCD;
-import lejos.hardware.motor.Motor;
-import lejos.hardware.port.SensorPort;
-import lejos.hardware.sensor.EV3ColorSensor;
-import lejos.hardware.sensor.EV3GyroSensor;
-import lejos.hardware.sensor.EV3UltrasonicSensor;
-import lejos.remote.ev3.RemoteEV3;
 import lejos.remote.ev3.RMIRegulatedMotor;
-import lejos.remote.ev3.RMISampleProvider;
-//import lejos.robotics.SampleProvider;
-
-import org.jetbrains.annotations.Contract;
+import lejos.remote.ev3.RemoteEV3;
 
 import java.net.MalformedURLException;
 import java.rmi.ConnectException;
 import java.rmi.NotBoundException;
 import java.rmi.RemoteException;
 
+//import lejos.robotics.SampleProvider;
+
 public class remoteRobot extends Thread{
+  public boolean finishedAction = false;
+  public boolean obstacle = false;
   private RemoteEV3 thisRobot= null;
-  String IP;
+  public boolean isInitialized = false;
+  private String IP;
   private RMIRegulatedMotor leftMotor = null;
   private RMIRegulatedMotor rightMotor = null;
   private static LCSensorLeft leftSensor;
@@ -54,22 +48,52 @@ public class remoteRobot extends Thread{
     //thisRobot.setDefault();
     this.leftMotor = thisRobot.createRegulatedMotor("A",'L');
     this.rightMotor = thisRobot.createRegulatedMotor("D",'L');
-
-    RMISampleProvider color_sensor = thisRobot.createSampleProvider("S4",
-            "lejos.hardware.sensor.EV3UltrasonicSensor", "Distance");
-    float[] color_id= color_sensor.fetchSample();
-    color_sensor.close();
-    System.out.println("color = "+color_id[0]);
-
-    //leftMotor.resetTachoCount();
-    //rightMotor.resetTachoCount();
     this.leftMotor.rotateTo(0);
     this.rightMotor.rotateTo(0);
-    /*
-    leftSensor = new LCSensorLeft(thisRobot);
-    rightSensor = new LCSensorRight(thisRobot);
-    usSensor = new USSensor(thisRobot);
-    gSensor = new GSensor(thisRobot);
+    try {
+      leftSensor = new LCSensorLeft(thisRobot.createSampleProvider("S1", "lejos.hardware.sensor.EV3ColorSensor", "ColorID"), leftMotor);
+      leftSensor.suspended = true;
+      System.out.println("Left Sensor OK!");
+    }
+    catch (Exception e){
+      leftMotor.close();
+      rightMotor.close();
+      System.exit(-1);
+    }
+    try{
+    rightSensor = new LCSensorRight(thisRobot.createSampleProvider("S4","lejos.hardware.sensor.EV3ColorSensor","ColorID"), rightMotor);
+    rightSensor.suspended = true;
+      System.out.println("Right Sensor OK!");
+    }
+    catch (Exception e){
+      leftMotor.close();
+      rightMotor.close();
+      leftSensor.close();
+      System.exit(-1);
+    }
+    try{
+    usSensor = new USSensor(thisRobot.createSampleProvider("S3","lejos.hardware.sensor.EV3UltrasonicSensor","Distance"));
+      System.out.println("Distance OK!");
+    }
+    catch (Exception e){
+      leftMotor.close();
+      rightMotor.close();
+      leftSensor.close();
+      rightSensor.close();
+      System.exit(-1);
+    }
+    try{
+    gSensor = new GSensor(thisRobot.createSampleProvider("S2","lejos.hardware.sensor.EV3GyroSensor","Angle"));
+      System.out.println("Angle OK!");
+    }
+    catch (Exception e){
+      leftMotor.close();
+      rightMotor.close();
+      leftSensor.close();
+      rightSensor.close();
+      usSensor.close();
+      System.exit(-1);
+    }
     leftSensor.setDaemon(true);
     rightSensor.setDaemon(true);
     usSensor.setDaemon(true);
@@ -78,11 +102,11 @@ public class remoteRobot extends Thread{
     rightSensor.start();
     usSensor.start();
     gSensor.start();
-    /*
-     */
+
     //LCD.drawString("Press any Key.", 0, 0);
     //Button.waitForAnyPress();
     //readSensors();
+    /*
     leftMotor.setSpeed(400);
     rightMotor.setSpeed(400);
     this.leftMotor.forward();
@@ -108,96 +132,110 @@ public class remoteRobot extends Thread{
     this.rightMotor.rotate(180);
     this.rightMotor.close();
     this.leftMotor.close();
+    */
+    while(leftSensor.getColor() == 0 || rightSensor.getColor() == 0)
+    {
+      try {
+        Thread.sleep(100);
+      } catch (InterruptedException e) {
+        e.printStackTrace();
+      }
+    }
+    isInitialized = true;
   }
 
   public void followLine() throws RemoteException {
-    centered = false;
-    long startTime = System.currentTimeMillis();
-    boolean crossing = false;
-    while (!crossing) {
-      if (rightSensor.getColor() != 7 && leftSensor.getColor() != 7) {
-        leftMotor.setSpeed(400);
-        rightMotor.setSpeed(400);
-        leftMotor.forward();
-        rightMotor.forward();
+      leftSensor.suspended = false;
+      rightSensor.suspended = false;
+    while(leftSensor.getColor() != 7 || rightSensor.getColor() != 7) {
+      try {
+        Thread.sleep(200);
+      } catch (InterruptedException e) {
+        e.printStackTrace();
       }
-      if (rightSensor.getColor() == 7 && leftSensor.getColor() != 7 && (System.currentTimeMillis() / startTime) <= 0) {
-        //leftMotor.setSpeed(leftMotor.getSpeed()+25);
-        rightMotor.setSpeed(rightMotor.getSpeed() - 25);
-        //rightMotor.setSpeed(300);
-        //madeRightTurn = true;
-      }
-      if (rightSensor.getColor() != 7 && leftSensor.getColor() == 7 && (System.currentTimeMillis() / startTime) <= 0) {
-        //rightMotor.setSpeed(rightMotor.getSpeed()+25);
-        leftMotor.setSpeed(leftMotor.getSpeed() - 25);
-        //leftMotor.setSpeed(300);
-        //madeLeftTurn = true;
-      } else crossing = true;
+    /*if(usSensor.getDistance() <=0.3){
+      leftSensor.suspended = true;
+      rightSensor.suspended = true;
+    }*/
+    }
+    if(leftSensor.getColor() == 7 && rightSensor.getColor() == 7){
+      leftSensor.suspended = true;
+      rightSensor.suspended = true;
+      System.out.println("finished");
+      finishedAction = true;
+      //todo hier tobi schnittstelle
     }
   }
 
-  public void turn(turndirection direction) throws RemoteException {
-    if (!centered) {
-      leftMotor.rotate(180);
-      rightMotor.rotate(180);
-      centered = true;
-    }
-    if (direction == turndirection.LEFT) {
-      leftMotor.rotate(-180, true);
-      rightMotor.rotate(180);
-    }
-    if (direction == turndirection.RIGHT) {
-      leftMotor.rotate(180, true);
-      rightMotor.rotate(-180);
-    }
-  }
-
-  public void load_unload(boolean stop) throws RemoteException {
-    while (gSensor.getAngle() % 180 != 0) {
-      if (gSensor.getAngle() > 0) {
-        if (gSensor.getAngle() - 180 > 0)
-          leftMotor.setSpeed(50);
-        else
-          rightMotor.setSpeed(50);
-      } else {
-        if (gSensor.getAngle() + 180 > 0)
-          leftMotor.setSpeed(50);
-        else
-          rightMotor.setSpeed(50);
+  public void turn(turndirection direction) throws RemoteException{
+    if(direction == turndirection.LEFT){
+      rightSensor.turnleft = true;
+      leftSensor.turnleft = true;
+      while(rightSensor.turnleft || leftSensor.turnleft){
+        try {
+          Thread.sleep(200);
+        } catch (InterruptedException e) {
+          e.printStackTrace();
+        }
       }
     }
-    leftMotor.rotate(360);
-    rightMotor.rotate(360);
-    leftMotor.rotate(180);
-    rightMotor.rotate(-180);
-    LCD.drawString("Please Confirm.", 0, 0);
-    Button.waitForAnyPress();
-    if (!stop)
-      startMove(0);
+    if(direction == turndirection.RIGHT){
+      leftSensor.turnright = true;
+      rightSensor.turnright = true;
+      while(leftSensor.turnright || rightSensor.turnright){
+        try {
+          Thread.sleep(200);
+        } catch (InterruptedException e) {
+          e.printStackTrace();
+        }
+      }
+    }
+    if(direction == turndirection.NONE){
+      leftSensor.skip = true;
+      rightSensor.skip = true;
+      while(leftSensor.skip || rightSensor.skip){
+        try {
+          Thread.sleep(200);
+        } catch (InterruptedException e) {
+          e.printStackTrace();
+        }
+      }
+    }
+  }
+  public void park(){
+    leftSensor.park = true;
+    rightSensor.park = true;
+    while(leftSensor.park || rightSensor.park){
+      try {
+        Thread.sleep(200);
+      } catch (InterruptedException e) {
+        e.printStackTrace();
+      }
+    }
   }
 
-  private void startMove(int move) throws RemoteException {
-    int rotate = 0;
-    if (move == 0) {
-      move = 360;
+  public void go() {
+    leftSensor.go = true;
+    rightSensor.go = true;
+    while(leftSensor.go || rightSensor.go){
+      try {
+        Thread.sleep(200);
+      } catch (InterruptedException e) {
+        e.printStackTrace();
+      }
     }
-    leftMotor.rotate(move);
-    rightMotor.rotate(move);
-    rightMotor.rotate(90);
-    leftMotor.rotate(-90);
-    while ((leftSensor.getColor() != 7 && rightSensor.getColor() != 7) || rotate == 18) {
-      rightMotor.rotate(-10);
-      leftMotor.rotate(10);
-      rotate++;
-    }
-    if (leftSensor.getColor() != 7 && rightSensor.getColor() != 7)
-      startMove(20);
   }
-  private void readSensors(){
-      //LCD.drawString(Integer.toString(leftSensor.getColor()), 0, 2);
-      //LCD.drawString(Integer.toString(rightSensor.getColor()), 0, 4);
-      //LCD.drawString(Integer.toString(gSensor.getAngle()), 0, 4);
-      LCD.drawString(Double.toString(usSensor.getDistance()), 0, 2);
+
+  public void turnaround(){
+    leftSensor.turnaround = true;
+    rightSensor.turnaround = true;
+    while(leftSensor.turnaround || rightSensor.turnaround){
+      try {
+        Thread.sleep(200);
+      } catch (InterruptedException e) {
+        e.printStackTrace();
+      }
+    }
   }
   public synchronized void run(){
     try {
@@ -214,107 +252,10 @@ public class remoteRobot extends Thread{
   public void closePorts() throws RemoteException {
     leftMotor.close();
     rightMotor.close();
+    leftSensor.close();
+    rightSensor.close();
+    gSensor.close();
+    usSensor.close();
   }
 }
 
-class LCSensorLeft extends Thread {
-  private RMISampleProvider sp = null;
-  private int color = 0;
-
-  LCSensorLeft(RemoteEV3 thisRobot) {
-    sp = thisRobot.createSampleProvider("S1","lejos.hardware.sensor.EV3ColorSensor","ColorID");
-  }
-
-  @Contract(pure = true)
-  int getColor() {
-    return color;
-  }
-
-  public synchronized void run() {
-    while (true) {
-        float[] sample = new float[0];
-      try {
-        sample = sp.fetchSample();
-      } catch (RemoteException e) {
-        e.printStackTrace();
-      }
-      color = (int) sample[0];
-    }
-  }
-}
-
-class LCSensorRight extends Thread {
-  private RMISampleProvider sp = null;
-  private int color = 0;
-
-  LCSensorRight(RemoteEV3 thisRobot) {
-    sp = thisRobot.createSampleProvider("S4","lejos.hardware.sensor.EV3ColorSensor","ColorID");
-  }
-
-  @Contract(pure = true)
-  int getColor() {
-    return color;
-  }
-
-  public synchronized void run() {
-    while (true) {
-      float[] sample = new float[0];
-      try {
-        sample = sp.fetchSample();
-      } catch (RemoteException e) {
-        e.printStackTrace();
-      }
-      color = (int) sample[0];
-    }
-  }
-}
-
-class GSensor extends Thread {
-  private RMISampleProvider sp = null;
-  private int angle = 0;
-
-  GSensor(RemoteEV3 thisRobot) {
-    sp = thisRobot.createSampleProvider("S2","lejos.hardware.sensor.EV3GyroSensor","Angle");
-  }
-
-  int getAngle() {
-    return angle;
-  }
-
-  public synchronized void run() {
-    while(true){
-      float[] sample = new float[0];
-      try {
-        sample = sp.fetchSample();
-      } catch (RemoteException e) {
-        e.printStackTrace();
-      }
-      angle = (int) sample[0];
-    }
-  }
-}
-
-class USSensor extends Thread {
-  private RMISampleProvider sp = null;
-  //private final EV3UltrasonicSensor uss = new EV3UltrasonicSensor(SensorPort.S3);
-  //private final RMISampleProvider sp = uss.getDistanceMode();
-  private double distance;
-
-  USSensor(RemoteEV3 thisRobot) {
-    sp = thisRobot.createSampleProvider("S3","lejos.hardware.sensor.EV3UltrasonicSensor","Distance");
-  }
-  double getDistance(){
-    return distance;
-  }
-  public synchronized void run(){
-    while(true){
-      float[] sample = new float[0];
-      try {
-        sample = sp.fetchSample();
-      } catch (RemoteException e) {
-        e.printStackTrace();
-      }
-      distance = (double) sample[0];
-    }
-  }
-}

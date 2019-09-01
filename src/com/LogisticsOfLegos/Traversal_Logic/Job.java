@@ -8,6 +8,7 @@ public class Job{
 	public int jobPriority;
 	public int pickupPosition;
 	public int dumpPosition;
+	public int jobId;
 	public int[] stations = new int[10];
 	public JobStatus jobStatus;
 	public int visitedStations = 1;
@@ -19,29 +20,33 @@ public class Job{
 	
 	public Job() {
 		this.jobStatus = JobStatus.NONEASSIGNED;
+		this.jobId = 0;
+		this.jobPriority = 11;
 	}
 	
 	public void generateParkingJob(int currentPosition, boolean isFirstRobot)
 	{
-		this.jobPriority = 99999;
+		this.jobPriority = 11;		// Priority ranges from 0 to 10 for actual jobs
 		this.jobStatus = JobStatus.MOVINGTOPARKING;
 		this.pickupPosition = currentPosition;
 		this.dumpPosition = isFirstRobot ? 7 : 8;
+		this.jobId = 0;
 		generateAllStations(currentPosition);
 	}
 	
-	public void changeJob(int jobPriority, int pickupPosition, int dumpPosition, JobStatus jobStatus, int currentPosition) {
+	public void changeJob(int jobPriority, int pickupPosition, int dumpPosition, JobStatus jobStatus, int currentPosition, int jobId) {
 		this.jobPriority = jobPriority;
 		this.pickupPosition = pickupPosition;
 		this.dumpPosition = dumpPosition;
 		this.jobStatus = jobStatus;
 		this.reachedPickup = (currentPosition == pickupPosition);
+		this.jobId = jobId;
 		generateAllStations(currentPosition);
 	}
-
-    public int checkNextStation() {
-      return stations[visitedStations];
-    }
+	
+	public int checkNextStation() {
+		return stations[visitedStations];
+	}
 	
 	public int getNextStation() {
 		if(stations[visitedStations-1] == pickupPosition)		//if pickup position was just visited, now the robot is on its way to the dumping position
@@ -67,7 +72,7 @@ public class Job{
 			}
 			else
 			{
-			    stations[i] = calculateNextStation(stations[i-1], dumpPosition);
+					stations[i] = calculateNextStation(stations[i-1], dumpPosition);
 			}
 		}
 	}

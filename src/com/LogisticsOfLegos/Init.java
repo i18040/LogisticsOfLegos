@@ -1,18 +1,22 @@
 package com.LogisticsOfLegos;
 
 import com.LogisticsOfLegos.Movement.remoteRobot;
-import lejos.remote.ev3.RMIRegulatedMotor;
-import lejos.remote.ev3.RMISampleProvider;
-import lejos.remote.ev3.RemoteEV3;
+import com.LogisticsOfLegos.Movement.turndirection;
 
 import java.net.MalformedURLException;
-import java.rmi.ConnectException;
 import java.rmi.NotBoundException;
 import java.rmi.RemoteException;
 
 public class Init {
+  private static remoteRobot firstRobot = null;
+  private static remoteRobot secondRobot = null;
   public static void main(String[] args) throws RemoteException, NotBoundException, MalformedURLException {
-    /*boolean connected = false;
+
+
+    //Startseite seite = new Startseite();
+    //seite.setVisible(true);
+    /*
+    boolean connected = false;
     int i = 0;
     RemoteEV3 ev3 = null;
     while (!connected)
@@ -26,18 +30,97 @@ public class Init {
       }
     }
     ev3.setDefault();
-    RMISampleProvider color_sensor = ev3.createSampleProvider("S4",
+
+    RMISampleProvider color_sensor_right = ev3.createSampleProvider("S4",
             "lejos.hardware.sensor.EV3ColorSensor", "ColorID");
-    float[] color_id= color_sensor.fetchSample();
-    System.out.println("color = "+color_id[0]);
-    color_sensor.close();
+    float[] color_id_right= color_sensor_right.fetchSample();
+    System.out.println("color = "+color_id_right[0]);
+    color_sensor_right.close();
+    RMISampleProvider color_sensor_left = ev3.createSampleProvider("S1",
+            "lejos.hardware.sensor.EV3ColorSensor", "ColorID");
+    float[] color_id_left= color_sensor_left.fetchSample();
+    System.out.println("color = "+color_id_left[0]);
+    color_sensor_left.close();
+    RMISampleProvider gyro_sensor = ev3.createSampleProvider("S2",
+            "lejos.hardware.sensor.EV3GyroSensor", "Angle");
+    float[] angle= gyro_sensor.fetchSample();
+    System.out.println("angle = "+angle[0]);
+    gyro_sensor.close();
+    RMISampleProvider distance_sensor = ev3.createSampleProvider("S3",
+            "lejos.hardware.sensor.EV3UltrasonicSensor", "Distance");
+    float[] distance= distance_sensor.fetchSample();
+    System.out.println("distance = "+distance[0]);
+    distance_sensor.close();
     RMIRegulatedMotor leftMotor = ev3.createRegulatedMotor("A",'L');
     leftMotor.rotate(180);
     leftMotor.close();
     */
-    remoteRobot firstRobot = new remoteRobot("10.0.1.1");
+    firstRobot = new remoteRobot("10.0.1.1");
     firstRobot.start();
-    remoteRobot secondRobot = new remoteRobot("10.0.1.2");
-    secondRobot.start();
+    //secondRobot = new remoteRobot("10.0.1.4");
+    //secondRobot.start();
+    while(!firstRobot.isInitialized) {
+      try {
+        Thread.sleep(200);
+      } catch (InterruptedException e) {
+        e.printStackTrace();
+      }
+    }
+    /*while(!secondRobot.isInitialized) {
+      try {
+        Thread.sleep(200);
+      } catch (InterruptedException e) {
+        e.printStackTrace();
+      }
+    }*/
+    //firstRobot.startMove(0);
+    //firstRobot.readSensors();
+    firstRobot.go();
+    System.out.println("Follow");
+    firstRobot.followLine();
+    System.out.println("LEFT");
+    firstRobot.turn(turndirection.LEFT);
+    System.out.println("Follow");
+    firstRobot.followLine();
+    System.out.println("NONE");
+    firstRobot.turn(turndirection.NONE);
+    System.out.println("Follow");
+    firstRobot.followLine();
+    System.out.println("RIGHT");
+    firstRobot.turn(turndirection.RIGHT);
+    System.out.println("Follow");
+    firstRobot.followLine();
+    firstRobot.park();
+    firstRobot.turnaround();
+    //firstRobot.load_unload(true);
+    firstRobot.closePorts();
+    //remoteRobot secondRobot = new remoteRobot("10.0.1.2");
+    //secondRobot.start();
+  }
+  public static void waitforfinish(remoteRobot robot){
+    while(!robot.finishedAction) {
+      try {
+        Thread.sleep(200);
+      } catch (InterruptedException e) {
+        e.printStackTrace();
+      }
+    }
+  }
+  public static void close(){
+    if (firstRobot != null) {
+      try {
+        firstRobot.closePorts();
+      } catch (RemoteException e) {
+        e.printStackTrace();
+      }
+    }
+    if (secondRobot != null) {
+      try {
+        secondRobot.closePorts();
+      } catch (RemoteException e) {
+        e.printStackTrace();
+      }
+    }
+    System.exit(0);
   }
 }

@@ -16,15 +16,11 @@ public class Navigation {			//expect from GUI to have checked that pickup & dump
 			this.cardinalDirection = cardinalDirection;
 		}
 		
-		public void assignJob(int jobPriority, int pickupPosition, int dumpPosition, JobStatus jobStatus) {
-			job.changeJob(jobPriority, pickupPosition, dumpPosition, jobStatus, position);
-		}
-		
 		public void clearJob() {
 			job = new Job();
 		}
 		
-		public void changeJobStatus(JobStatus jobStatus) {		// Useful for Mike - change to idle after reaching points, or to waitingfor.. when necessary
+		public void changeJobStatus(JobStatus jobStatus) {
 			job.jobStatus = jobStatus;
 		}
 	}
@@ -32,6 +28,17 @@ public class Navigation {			//expect from GUI to have checked that pickup & dump
 	public Robot firstRobot = new Robot(7, Status.IDLE, 3);
 	public Robot secondRobot = new Robot(8, Status.IDLE, 1);
 	
+	public void changeStatusToIdle(boolean isFirstRobot) {	//created for Mike to Change Status to idle
+		if(isFirstRobot)
+		{
+			firstRobot.status = Status.IDLE;
+		}
+		else
+		{
+			secondRobot.status = Status.IDLE;
+		}
+	}
+
 	public void checkChanges() {		//THIS is the most important method for others. Call it when anything happens.
 		checkIfJobDone();
 		checkJobChanges();
@@ -59,36 +66,60 @@ public class Navigation {			//expect from GUI to have checked that pickup & dump
 			}
 		}
 	}
+
 	public void checkIfJobDone() {
-		if(firstRobot.job.jobStatus != JobStatus.NONEASSIGNED && firstRobot.job.reachedPickup == true
+		if(firstRobot.job.jobStatus != JobStatus.NONEASSIGNED && firstRobot.job.reachedPickup
 				&& firstRobot.position == firstRobot.job.dumpPosition && firstRobot.status == Status.IDLE)
 		{
-			firstRobot.clearJob();  //Job done. Important for GUI: could be the parking job which is done!
+			firstRobot.clearJob();  //Job done. Not important for GUI, because after accepting they are already moved to done
 		}
-		else if(secondRobot.job.jobStatus != JobStatus.NONEASSIGNED && secondRobot.job.reachedPickup == true
+		else if(secondRobot.job.jobStatus != JobStatus.NONEASSIGNED && secondRobot.job.reachedPickup
 				&& secondRobot.position == secondRobot.job.dumpPosition && secondRobot.status == Status.IDLE)
 		{
-			secondRobot.clearJob();	//Job done. Important for GUI: could be the parking job which is done!
+			secondRobot.clearJob();	//Job done. Not important for GUI, because after accepting they are already moved to done
 		}
 	}
 	
+	public int[] getLowestValueInQueue()		//PLACEHOLDER; should be Peter's Method
+	{
+		int[] a = {1,2};
+		return a;
+	}
+	public int[] acceptJob(int jobId)		//PLACEHOLDER; should be Peter's Method
+	{
+		int[] a = {1,2};
+		return a;
+	}
+	public int[] acceptJob(int jobId, int jobId2)		//PLACEHOLDER; should be Peter's Method
+	{
+		int[] a = {1,2};
+		return a;
+	}
+	
 	public void checkJobChanges() {
-		int lowestpriorityjobinqueue = 1;		//get this value from GUI!
-		if(firstRobot.job.jobStatus == JobStatus.NONEASSIGNED || firstRobot.job.jobStatus == JobStatus.MOVINGTOPARKING)
+		int[] priorityAndJobId = getLowestValueInQueue();
+		int lowestPriority = priorityAndJobId[0];
+		int jobId = priorityAndJobId[1];
+		
+		if(firstRobot.job.jobStatus == JobStatus.NONEASSIGNED || firstRobot.job.jobId == 0)
 		{
-			//assign Job with lowest priority value to first robot!
+			int[] pickupAndDumpLocation = acceptJob(jobId);
+			firstRobot.job.changeJob(lowestPriority, pickupAndDumpLocation[0], pickupAndDumpLocation[1], JobStatus.MOVINGTOPICKUP, firstRobot.position, jobId);
 		}
-		else if(firstRobot.job.jobPriority > lowestpriorityjobinqueue && firstRobot.job.jobStatus == JobStatus.MOVINGTOPICKUP)
+		else if(firstRobot.job.jobPriority > lowestPriority && (!firstRobot.job.reachedPickup))
 		{
-			//assign Job with lowest priority value to first robot, and add the job it was working on to the queue again!
+			int[] pickupAndDumpLocation = acceptJob(jobId, firstRobot.job.jobId);
+			firstRobot.job.changeJob(lowestPriority, pickupAndDumpLocation[0], pickupAndDumpLocation[1], JobStatus.MOVINGTOPICKUP, firstRobot.position, jobId);
 		}
-		if(secondRobot.job.jobStatus == JobStatus.NONEASSIGNED || secondRobot.job.jobStatus == JobStatus.MOVINGTOPARKING)
+		if(secondRobot.job.jobStatus == JobStatus.NONEASSIGNED || secondRobot.job.jobId == 0)
 		{
-			//assign Job with lowest priority value to second robot!
+			int[] pickupAndDumpLocation = acceptJob(jobId);
+			secondRobot.job.changeJob(lowestPriority, pickupAndDumpLocation[0], pickupAndDumpLocation[1], JobStatus.MOVINGTOPICKUP, secondRobot.position, jobId);
 		}
-		else if(secondRobot.job.jobPriority > lowestpriorityjobinqueue && secondRobot.job.jobStatus == JobStatus.MOVINGTOPICKUP)
+		else if(secondRobot.job.jobPriority > lowestPriority && (!secondRobot.job.reachedPickup))
 		{
-			//assign Job with lowest priority value to second robot, and add the job it was working on to the queue again!
+			int[] pickupAndDumpLocation = acceptJob(jobId, secondRobot.job.jobId);
+			secondRobot.job.changeJob(lowestPriority, pickupAndDumpLocation[0], pickupAndDumpLocation[1], JobStatus.MOVINGTOPICKUP, secondRobot.position, jobId);
 		}
 	}
 	
@@ -108,11 +139,13 @@ public class Navigation {			//expect from GUI to have checked that pickup & dump
 			//rotate by 90� to the right
 			currentRobot.cardinalDirection = (firstRobot.cardinalDirection+1)%4;
 		}
-		//initiate driving to the next spot which is goal; after reaching there - set Status to idle!(Mike)
+		//here MikeDrive(currentRobot.position, goal);
 		currentRobot.status = Status.WORKINGONJOB;
 		currentRobot.job.jobStatus = currentRobot.job.reachedPickup ? JobStatus.MOVINGTODUMP : JobStatus.MOVINGTOPICKUP;
+		if(currentRobot.job.jobId == 0) { currentRobot.job.jobStatus = JobStatus.MOVINGTOPARKING; }
 		currentRobot.position = goal;
 	}
+	
 	public void generateParkingJob(boolean isFirstRobot) {
 		Robot currentRobot;
 		if(isFirstRobot)
@@ -125,10 +158,10 @@ public class Navigation {			//expect from GUI to have checked that pickup & dump
 		}
 		currentRobot.clearJob();
 		currentRobot.job.generateParkingJob(currentRobot.position, isFirstRobot);
-		checkChanges();
+		navigateToNextPoint(isFirstRobot, currentRobot.job.getNextStation());
 	}
 	
-	public int getRequiredCardinalDirection(int position, int goal) {
+	public int getRequiredCardinalDirection(int position, int goal) {	//position and goal have to next to each other!
 		if(position == 1 || position == 4 || position == 7)
 		{
 			return 1;
